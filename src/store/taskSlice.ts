@@ -50,6 +50,40 @@ export const fetchTasks = createAsyncThunk(
     }
   );
 
+  export const updateTask = createAsyncThunk(
+    'tasks/updateTask',
+    async (taskData: { id: string; title: string; description: string; status: string }, { getState, rejectWithValue }) => {
+      try {
+        console.log('Updating task with data:', taskData);
+        const { auth } = getState() as { auth: { token: string } };
+        const response = await axios.put(`http://localhost:3000/tasks/${taskData.id}`, taskData, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+        });
+        console.log('Update response:', response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error('Error updating task:', error.response?.data || error.message);
+        return rejectWithValue(error.response?.data || 'An error occurred');
+      }
+    }
+  );
+  
+  
+  export const deleteTask = createAsyncThunk(
+    'tasks/deleteTask',
+    async (taskId: string, { getState, rejectWithValue }) => {
+      try {
+        const { auth } = getState() as { auth: { token: string } };
+        await axios.delete(`http://localhost:3000/tasks/${taskId}`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+        });
+        return taskId;
+      } catch (error: any) {
+        return rejectWithValue(error.response?.data || 'An error occurred');
+      }
+    }
+  );
+
 const taskSlice = createSlice({
   name: 'tasks',
   initialState,
@@ -69,6 +103,23 @@ const taskSlice = createSlice({
       })
       .addCase(createTask.fulfilled, (state, action) => {
         state.tasks.push(action.payload);
+      })
+      .addCase(updateTask.fulfilled, (state, action) => {
+        console.log('Update fulfilled, payload:', action.payload);
+        const index = state.tasks.findIndex(task => task.id === action.payload.id);
+        if (index !== -1) {
+          state.tasks[index] = action.payload;
+          console.log('Task updated in state');
+        } else {
+          console.log('Task not found in state');
+        }
+      })
+      .addCase(updateTask.rejected, (state, action) => {
+        console.error('Update rejected:', action.payload);
+        state.error = action.payload as string;
+      })
+      .addCase(deleteTask.fulfilled, (state, action) => {
+        state.tasks = state.tasks.filter(task => task.id !== action.payload);
       });
   },
 });

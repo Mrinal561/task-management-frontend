@@ -6,6 +6,7 @@ import { AppDispatch } from '../store';
 const CreateTask: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [status, setStatus] = useState('OPEN');
   const dispatch = useDispatch<AppDispatch>();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -13,6 +14,7 @@ const CreateTask: React.FC = () => {
     dispatch(createTask({ title, description }));
     setTitle('');
     setDescription('');
+    setStatus('OPEN');
   };
 
   return (
@@ -44,6 +46,22 @@ const CreateTask: React.FC = () => {
             rows={3}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
+        </div>
+        <div>
+          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+            Status
+          </label>
+          <select
+            id="status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          >
+            <option value="OPEN">Open</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="DONE">Done</option>
+          </select>
         </div>
         <button
           type="submit"
