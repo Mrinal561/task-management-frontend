@@ -20,7 +20,6 @@ export const signup = createAsyncThunk(
   async (credentials: { username: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await axios.post('http://localhost:3000/auth/signup', credentials);
-      // After successful signup, immediately log in the user
       const loginResponse = await axios.post('http://localhost:3000/auth/signin', credentials);
       localStorage.setItem('token', loginResponse.data.accessToken);
       return loginResponse.data;
