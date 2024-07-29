@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import endpoints from '../api/endpoints';
+import axios from '../util/axiosConfig';
 
 interface AuthState {
   user: any;
@@ -19,8 +20,8 @@ export const signup = createAsyncThunk(
   'auth/signup',
   async (credentials: { username: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:3000/auth/signup', credentials);
-      const loginResponse = await axios.post('http://localhost:3000/auth/signin', credentials);
+      const response = await axios.post(endpoints.auth.signup(), credentials);
+      const loginResponse = await axios.post(endpoints.auth.signin(), credentials);
       localStorage.setItem('token', loginResponse.data.accessToken);
       return loginResponse.data;
     } catch (error: any) {
@@ -33,10 +34,15 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { username: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:3000/auth/signin', credentials);
+      const url = endpoints.auth.signin();
+      console.log('Login URL:', url);
+      console.log('Credentials:', credentials);
+      const response = await axios.post(url, credentials);
+      console.log('Login response:', response.data);
       localStorage.setItem('token', response.data.accessToken);
       return response.data;
     } catch (error: any) {
+      console.error('Login error:', error.response || error);
       return rejectWithValue(error.response?.data?.message || 'An error occurred during login');
     }
   }
@@ -66,6 +72,7 @@ const authSlice = createSlice({
       .addCase(signup.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+        console.error('SignUp error:', action.payload);
       })
       .addCase(login.pending, (state) => {
         state.isLoading = true;
@@ -79,7 +86,8 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
-      });
+        console.error('Login error:', action.payload);
+      })
   },
 });
 

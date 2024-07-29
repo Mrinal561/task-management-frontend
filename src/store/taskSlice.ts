@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import endpoints from '../api/endpoints';
+import axios from '../util/axiosConfig'
+
 
 interface Task {
   id: string;
@@ -21,28 +23,22 @@ const initialState: TaskState = {
 };
 
 export const fetchTasks = createAsyncThunk(
-    'tasks/fetchTasks',
-    async (_, { getState, rejectWithValue }) => {
-      try {
-        const { auth } = getState() as { auth: { token: string } };
-        const response = await axios.get('http://localhost:3000/tasks', {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        });
-        return response.data;
-      } catch (error: any) {
-        return rejectWithValue(error.response?.data || 'An error occurred');
-      }
+  'tasks/fetchTasks',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(endpoints.tasks.list());
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || 'An error occurred');
     }
-  );
+  }
+);
   
   export const createTask = createAsyncThunk(
     'tasks/createTask',
-    async (taskData: { title: string; description: string }, { getState, rejectWithValue }) => {
+    async (taskData: { title: string; description: string; status: string }, { rejectWithValue }) => {
       try {
-        const { auth } = getState() as { auth: { token: string } };
-        const response = await axios.post('http://localhost:3000/tasks', taskData, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        });
+        const response = await axios.post(endpoints.tasks.create(), taskData);
         return response.data;
       } catch (error: any) {
         return rejectWithValue(error.response?.data || 'An error occurred');
@@ -52,13 +48,10 @@ export const fetchTasks = createAsyncThunk(
 
   export const updateTask = createAsyncThunk(
     'tasks/updateTask',
-    async (taskData: { id: string; title: string; description: string; status: string }, { getState, rejectWithValue }) => {
+    async (taskData: { id: string; title: string; description: string; status: string }, { rejectWithValue }) => {
       try {
         console.log('Updating task with data:', taskData);
-        const { auth } = getState() as { auth: { token: string } };
-        const response = await axios.put(`http://localhost:3000/tasks/${taskData.id}`, taskData, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        });
+        const response = await axios.put(endpoints.tasks.update(taskData.id), taskData);
         console.log('Update response:', response.data);
         return response.data;
       } catch (error: any) {
@@ -71,12 +64,9 @@ export const fetchTasks = createAsyncThunk(
   
   export const deleteTask = createAsyncThunk(
     'tasks/deleteTask',
-    async (taskId: string, { getState, rejectWithValue }) => {
+    async (taskId: string, { rejectWithValue }) => {
       try {
-        const { auth } = getState() as { auth: { token: string } };
-        await axios.delete(`http://localhost:3000/tasks/${taskId}`, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        });
+        await axios.delete(endpoints.tasks.delete(taskId));
         return taskId;
       } catch (error: any) {
         return rejectWithValue(error.response?.data || 'An error occurred');
